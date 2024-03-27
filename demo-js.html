@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        #header {
+            background-color: #ff3f3f;
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            text-align: center;
+            display: flex;
+            padding: 0 20px;
+        }
+
+        h3 {
+            font-size: 25px;
+            color: white;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            outline: none;
+        }
+
+        button#btnAdd {
+            cursor: pointer;
+            width: 270px;
+            padding: 15px;
+            border: none;
+            background-color: rgb(210, 210, 210);
+            color: white;
+            cursor: pointer;
+        }
+
+        .item {
+            list-style: none;
+            display: flex;
+            background-color: rgb(200, 200, 200);
+            padding: 15px;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 25px;
+            color: #fff;
+            letter-spacing: 3px;
+        }
+
+        .list-inputValue {
+            padding: 0;
+        }
+
+        #xoa {
+            font-size: 17px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        #xoa:hover {
+            color: white;
+            font-weight: bold;
+            background-color: #ff3f3f;
+        }
+
+        [data-status="1"] {
+            background-color: #ff3f3f;
+        }
+
+        [data-status="2"] {
+            background-color: blue;
+        }
+
+        
+        [data-status="3"] {
+            background-color: gray;
+        }
+
+        [data-is-checked="1"] {
+            text-decoration: line-through;
+            background-color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="header">
+            <h3>My To Do List</h3>
+            <div class="row">
+                <div style="display: flex; flex: 0 0 85%; justify-content: space-between;">
+                    <div style="flex: 0 0 50%;">
+                        <input id="inputValue" type="text" name="title" placeholder="Title...">
+                    </div>
+                    <div style="flex: 0 0 45%; margin-left: 10px; margin-right: 10px;">
+                        <select name="status" id="" style="width: 100%; padding: 14px;">
+                            <option value="">-- Lựa chọn --</option>
+                            <option value="1">Cấp bách</option>
+                            <option value="2">Bình thường</option>
+                            <option value="3">Không quan trọng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="btnAdd" type="button">Add</button>
+            </div>
+        </div>
+        <div id="container">
+            <ul id="list-inputValue">
+                
+            </ul>
+        </div>
+    </div>
+
+    <!-- js -->
+    <script>
+        const $buttonAdd = document.querySelector('#btnAdd');
+        const $title = document.querySelector('[name="title"]');
+        const $status = document.querySelector('[name="status"]');
+        const $todoWrapper = document.querySelector('#list-inputValue');
+
+        const STATUS_URGENT = 1;
+        const STATUS_NORMAL = 2;
+        const STATUS_NOT_IMPORTANT = 3;
+
+        // tham chieu & tham tri
+        const listTotods = [];
+
+        $buttonAdd.addEventListener('click', function() {
+            const titleValue = $title.value;
+            const statusValue = $status.value;
+
+            // console.log({
+            //     'titleValue__1': titleValue,
+            //     'statusValue__1': statusValue
+            // });
+            // console.log({
+            //     titleValue,
+            //     statusValue
+            // });
+
+            const isValid = validate(titleValue, statusValue);
+
+            if (isValid) {
+                const todo = {
+                    title: titleValue,
+                    status: statusValue,
+                    is_checked: 0,
+                };
+
+                listTotods.push(todo);
+
+                renderHtml(listTotods);
+
+                handleCheckTodos();
+            } else {
+                alert('Ban nhap sai roi vui long nhap lai');
+            }
+        });
+
+        function handleCheckTodos() {
+            const items = document.querySelectorAll('.item');
+
+            items.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    const isChecked = this.getAttribute('data-is-checked') == 1;
+                    const todo = listTotods[index];
+
+                    todo.is_checked = isChecked ? 0 : 1;
+
+                    listTotods.splice(index, 1, todo);
+
+                    renderHtml(listTotods);
+
+                    handleCheckTodos();
+                });
+            }); 
+        }
+
+        function renderHtml(todos) {
+            var htmls = todos.map(function(todo, index) {
+                return `
+                    <li class="item" data-index="${ index }" data-status="${ todo.status }" data-is-checked="${ todo.is_checked }">
+                        <span>${ todo.title }</span>    
+                        <span class="xoa">x</span>
+                    </li>
+                `;
+            });
+
+            htmls = htmls.join('');
+
+            $todoWrapper.innerHTML = htmls;
+        }
+
+        /** 
+         * @return bool
+         */
+        function validate(title, status) {
+            var isValid = true;
+
+            // trim() de xoa khoan trang trc va sau
+            if (title.trim().length == 0) {
+                isValid = false;
+            }
+
+            if (title.trim().length > 255) {
+                isValid = false;
+            }
+
+            // console.log(
+            //     status == STATUS_URGENT
+            //     || status == STATUS_NORMAL
+            //     || status == STATUS_NOT_IMPORTANT
+            // );
+
+            if (
+                ! (
+                    status == STATUS_URGENT
+                    || status == STATUS_NORMAL
+                    || status == STATUS_NOT_IMPORTANT
+                )
+            ) {
+                isValid = false;
+            }
+
+            // if (! [STATUS_URGENT, STATUS_NORMAL, STATUS_NOT_IMPORTANT].includes(status)) {
+            //     isValid = false;
+            // }
+
+            return isValid;
+
+            
+        }
+    </script>
+</body>
+</html>
